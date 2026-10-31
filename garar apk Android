@@ -1,0 +1,47 @@
+
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MiniBattleRoyale-Android-Projeto.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extrair projeto
+        run: |
+          unzip MiniBattleRoyale-Android-Projeto.zip
+          cd MiniBattleRoyale-Android
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Compilar APK
+        run: |
+          cd MiniBattleRoyale-Android/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mini-Battle-Royale-APK
+          path: MiniBattleRoyale-Android/android/app/build/outputs/apk/debug/app-debug.apk
